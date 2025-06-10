@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+  <style>
+    body { font-family: Arial; text-align: center; margin-top: 100px; }
+    button { padding: 10px 20px; background: red; color: white; border: none; }
+  </style>
+</head>
+<body>
+  <h2>Welcome to Home AI Dashboard!</h2>
+  <button onclick="logout()">Logout</button>
+
+  <script>
+    if (localStorage.getItem('isLoggedIn') !== 'true') {
+      window.location.href = 'login.html';
+    }
+
+    function logout() {
+      localStorage.removeItem('isLoggedIn');
+      window.location.href = 'login.html';
+    }
+  </script>
+</body>
+</html>

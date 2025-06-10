@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Room Designer - {{ room_type }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <style>
+        /* Your existing styles with alignment adjustments */
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center; /* Center-align most elements within the body */
+            padding: 20px;
+            background: url("{{ url_for('static', filename='image/i2.jpeg') }}") no-repeat center center fixed;
+            background-size: cover;
+            color: #333;
+            display: flex; /* Enable flexbox for more control over vertical alignment */
+            flex-direction: column; /* Stack elements vertically */
+            align-items: center; /* Center items horizontally in the flex container */
+            min-height: 100vh; /* Ensure the body takes at least the full viewport height */
+            margin: 0; /* Remove default body margin */
+        }
+    
+        .controls {
+            margin: 15px 0;
+            background-color: rgba(255, 255, 255, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            display: inline-block; /* Allows it to take only necessary width */
+            text-align: center; /* Center-align content within the controls */
+        }
+    
+        canvas {
+            border: 1px solid #999;
+            margin-top: 20px;
+            max-width: 90%; /* Adjust width as needed */
+            background-color:  rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+        }
+    
+        #roomDetails,
+        #sofaInfo {
+            margin-top: 10px;
+            font-size: 16px;
+            background-color: rgba(255, 255, 255, 0.3);
+            padding: 5px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+    
+        #finalDesignControls {
+            margin-top: 20px;
+            background-color: rgba(255, 255, 255, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            display: inline-block;
+            text-align: center; /* Center-align buttons */
+        }
+    
+        select, input[type="number"] {
+            padding: 4px;
+            margin-left: 5px;
+        }
+    
+        button {
+            padding: 6px 12px;
+            margin: 5px; /* Add some margin between buttons */
+            cursor: pointer;
+            background-color: #f0f0f0;
+            color: #333;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    
+        button:hover {
+            background-color: #ddd;
+        }
+    
+        #suggestions {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color:  rgba(255, 255, 255, 0.3);
+            font-family: Arial, sans-serif;
+            text-align: left; /* Keep text left-aligned within suggestions */
+            border-radius: 5px;
+            width: 80%; /* Adjust width as needed */
+            margin-left: auto; /* Center the suggestions box */
+            margin-right: auto;
+        }
+    
+        #suggestions h3 {
+            margin-top: 0;
+            color: #333;
+            text-align: center; /* Center the heading within suggestions */
+        }
+    
+        #suggestions ul {
+            padding-left: 20px;
+        }
+    
+        #saveButton {
+            display: none;
+            margin-top: 10px;
+            /* background-color: rgba(255, 255, 255, 0.3); */
+            padding: 5px;
+            border-radius: 3px;
+            display: inline-block;
+            color: #333;
+            border: 1px solid #ccc;
+        }
+    
+        #designFinalizedText {
+            margin-top: 10px;
+            font-weight: bold;
+            color: green;
+            /* background-color: rgba(255, 255, 255, 0.3); */
+            padding: 5px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+    
+        #furnaiLink {
+            margin-top: 20px;
+            /* background-color:  rgba(255, 255, 255, 0.3); */
+            padding: 10px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+    
+        #furnaiLink button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+    
+        #furnaiLink button:hover {
+            background-color: #0056b3;
+        }
+    
+        /* New Styles for 2D Layout */
+        #layoutCanvas {
+            border: 1px solid #e5e7eb;
+            background-color:  rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            margin-top: 20px;
+            max-width: 90%; /* Adjust width as needed */
+            height: auto; /* Maintain aspect ratio */
+            border-radius: 5px;
+        }
+    
+        .furniture-button {
+            font-family: Arial, sans-serif;
+            padding: 6px 12px;
+            margin: 5px;
+            cursor: pointer;
+            /* background-color:  rgba(255, 255, 255, 0.3); */
+            color: #333;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 12px;
+            display: inline-block; /* Allows buttons to be on the same line if space allows */
+        }
+    
+        .furniture-button:hover {
+            background-color: #ddd;
+        }
+    
+        .selected-furniture {
+            background-color: #4CAF50 !important;
+            color: white !important;
+            border-color: #4CAF50;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+    
+    
+
+    <div class="controls">
+        <div style="font-weight: bold; font-size: 18px; margin-bottom: 10px;">
+            Designing Room : {{ room_type }}
+        </div>
+
+        <label>Width (m): <input type="number" id="roomWidth" step="0.1" /></label>
+        <label>Length (m): <input type="number" id="roomLength" step="0.1" /></label>
+        <button id="applyRoomButton" onclick="applyRoomDimensions()">Apply Room</button>
+
+    </div>
+
+    <div class="controls">
+        <label>Choose Room Image: <input type="file" id="uploadRoom" accept="image/*" /></label>
+        <label>Choose Style:
+            <select id="sofaStyle">
+                </select>
+        </label>
+        <button onclick="changeSofa()">Choose Style</button>
+    </div>
+
+    <h2>🎨 Paint the Wall</h2>
+    <div class="controls" id="paintControls">
+        <label for="wallColor">Choose Wall Color:</label>
+        <select id="wallColor">
+            <option value="initial">Original Color</option>
+            <option value="Charcoal">Charcoal</option>
+            <option value="Navy Blue">Navy Blue</option>
+            <option value="Forest Green">Forest Green</option>
+            <option value="Maroon">Maroon</option>
+            <option value="Deep Purple">Deep Purple</option>
+            <option value="Dark Slate Gray">Dark Slate Gray</option>
+            <option value="Indigo">Indigo</option>
+            <option value="Dark Olive Green">Dark Olive Green</option>
+            <option value="Chocolate">Chocolate</option>
+            <option value="Saddle Brown">Saddle Brown</option>
+            <option value="Crimson">Crimson</option>
+            <option value="Teal">Teal</option>
+            <option value="Midnight Blue">Midnight Blue</option>
+            <option value="Dark Cyan">Dark Cyan</option>
+            <option value="Dark Magenta">Dark Magenta</option>
+        </select>
+        <button onclick="paintWall()">Paint Wall</button>
+    </div>
+
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <div class="controls" style="margin-top: 20px;">
+        <button id="finalizeButton" class="finalize-button">Finalize Design</button>
+    </div>
+    
+
+    <div id="roomDetails"></div>
+    <div id="sofaInfo"></div>
+    <div id="sofaPositionSize" style="font-weight: bold; margin-top: 10px;"></div>
+
+    <div class="controls">
+        <label for="layoutCanvas">Room Layout:</label>
+        <canvas id="layoutCanvas" width="400" height="300" style="border:1px solid #ccc;"></canvas>
+    </div>
+    
+    <div id="furnitureButtons" style="margin-top:10px;"></div> 
+    <!-- Furniture buttons will be generated here based on suggestions -->
+    
+
+    <!-- <div class="controls">
+        <label for="furnitureSelect">Add Furniture:</label>
+        <div class="flex space-x-2 flex-wrap" id="furnitureSelect">
+            <button data-furniture="sofa" class="furniture-button">Sofa</button>
+            <button data-furniture="bed" class="furniture-button">Bed</button>
+            <button data-furniture="table" class="furniture-button">Table</button>
+            <button data-furniture="chair" class="furniture-button">Chair</button>
+            <button data-furniture="bookshelf" class="furniture-button">Bookshelf</button>
+            <button data-furniture="tvStand" class="furniture-button">TV Stand</button>
+        </div>
+    </div> -->
+
+    <div id="finalDesignControls">
+        <!-- <button onclick="finalizeDesign()" id="finalizeBtn">Finalize Design</button>
+        <div id="designFinalizedText"></div> -->
+        <button id="saveButton" onclick="saveDesign()">Save Design</button>
+    </div>
+
+    <div id="suggestions">
+        <h3>Suggested Furniture</h3>
+        <ul id="furnitureSuggestions"></ul>
+    </div>
+    <input type="hidden" id="roomType" value="{{ room_type }}">
+
+    <div id="furnaiLink">
+        <a href="{{ url_for('text_to_image') }}">
+            <button>Want to explore more styles? Try our FurnAI</button>
+        </a>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Generated Image</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: url("{{ url_for('static', filename='image/i3.jpeg') }}") no-repeat center center;
+            background-size: cover;
+            color: white;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #imageContainer {
+            width: 90%;
+            max-width: 800px;
+            background-color: rgba(0, 0, 0, 0.65);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            position: relative;
+        }
+
+        #promptInput {
+            width: 90%;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+        }
+
+        /* 🔥 STYLE TAGS */
+        .style-tags {
+            margin-top: 15px;
+            margin-bottom: 10px;
+        }
+
+        .style-tag {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 8px 12px;
+            margin: 5px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .style-tag:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        #generateButton {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin-top: 20px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+        }
+
+        #generateButton:hover {
+            background-color: #0056b3;
+        }
+
+        #generatedImage {
+            max-width: 90%;
+            max-height: 400px;
+            margin-top: 25px;
+            border-radius: 10px;
+            border: 2px solid #fff;
+            display: none;
+        }
+
+        /* 🔥 FANCY SPINNER 🔥 */
+        #spinner {
+            display: none;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .loader {
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #ffcc00;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        a {
+            margin-top: 25px;
+            display: inline-block;
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div id="imageContainer">
+        <h2>FurnAI</h2>
+
+        <input type="text" id="promptInput" placeholder="Enter your prompt" />
+
+        <!-- 🔥 STYLE TAGS BELOW -->
+        <div class="style-tags" id="styleTags"></div>
+
+        <button id="generateButton" onclick="generateImage()">Generate</button>
+
+        <!-- 🔥 FANCY SPINNER -->
+        <div id="spinner">
+            <div class="loader"></div>
+        </div>
+
+        <img id="generatedImage" src="" alt="Generated Image">
+
+        <br>
+        <a href="{{ url_for('index') }}">← Back to Designer</a>
+    </div>
+
+    <script>
+        // Style tags you wanted famous ones
+        const styles = [
+             'Mid-Century',
+            'Rustic', 'Industrial', 'Bohemian', 'Coastal', 'Farmhouse', 'Contemporary',
+            'Art Deco', 'Japandi', 'Eclectic', 'Hollywood Regency', 'Tropical', 
+            'Mediterranean', 'Victorian'
+        ];
+
+        const styleTagsContainer = document.getElementById('styleTags');
+        const promptInput = document.getElementById('promptInput');
+        const spinner = document.getElementById('spinner');
+        const generatedImage = document.getElementById('generatedImage');
+
+        // Fill clickable styles
+        styles.forEach(style => {
+            const tag = document.createElement('span');
+            tag.className = 'style-tag';
+            tag.innerText = style;
+            tag.onclick = () => {
+                promptInput.value = style + ' style ' + promptInput.value;
+            };
+            styleTagsContainer.appendChild(tag);
+        });
+
+        async function generateImage() {
+            const prompt = promptInput.value.trim();
+
+            if (!prompt) {
+                alert('Please enter a prompt!');
+                return;
+            }
+
+            spinner.style.display = 'block';
+            generatedImage.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('prompt', prompt);
+
+            try {
+                const response = await fetch('/generate_stable_diffusion_image', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    alert('Error: ' + error.error);
+                    spinner.style.display = 'none';
+                    return;
+                }
+
+                const data = await response.json();
+                generatedImage.src = 'data:image/png;base64,' + data.image;
+                generatedImage.style.display = 'block';
+            } catch (error) {
+                alert('Something went wrong!');
+                console.error(error);
+            } finally {
+                spinner.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
